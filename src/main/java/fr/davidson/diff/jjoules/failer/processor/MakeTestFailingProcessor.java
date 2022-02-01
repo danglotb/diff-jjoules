@@ -1,14 +1,11 @@
 package fr.davidson.diff.jjoules.failer.processor;
 
+import eu.stamp_project.testrunner.test_framework.TestFramework;
 import fr.davidson.diff.jjoules.instrumentation.InstrumentationProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import spoon.reflect.code.CtInvocation;
-import spoon.reflect.code.CtTypeAccess;
 import spoon.reflect.declaration.CtMethod;
 import spoon.reflect.factory.Factory;
-import spoon.reflect.reference.CtExecutableReference;
-import spoon.reflect.reference.CtTypeReference;
 
 import java.util.Map;
 import java.util.Set;
@@ -29,19 +26,12 @@ public class MakeTestFailingProcessor extends InstrumentationProcessor {
     @Override
     public void process(CtMethod<?> ctMethod) {
         final Factory factory = ctMethod.getFactory();
-        // target
-        // TODO WARNING, we use here JUnit 3 it might be a source of issues
-        final CtTypeReference<?> assertReference = factory.Type().createReference("junit.framework.Assert");
-        final CtTypeAccess<?> typeAccess = factory.createTypeAccess(assertReference);
-
-        // method to call
-        final CtExecutableReference<?> fail = factory.createExecutableReference();
-        fail.setDeclaringType(assertReference);
-        fail.setStatic(true);
-        fail.setSimpleName("fail");
-        // Invocations
-        final CtInvocation<?> failInvocation = factory.createInvocation(typeAccess, fail);
-        ctMethod.getBody().insertEnd(failInvocation);
+        TestFramework.init(factory);
+        ctMethod.getBody().insertEnd(factory.createCodeSnippetStatement(
+                TestFramework.isJUnit4(ctMethod) ?
+                        "org.junit.Assert.fail()" :
+                        "org.junit.jupiter.api.Assertions.fail()")
+        );
         this.instrumentedTypes.add(ctMethod.getDeclaringType());
     }
 
