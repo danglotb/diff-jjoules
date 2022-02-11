@@ -1,13 +1,18 @@
 package fr.davidson.diff.jjoules;
 
+import eu.stamp_project.testrunner.EntryPoint;
 import fr.davidson.diff.jjoules.report.ReportEnum;
 import fr.davidson.diff.jjoules.util.wrapper.WrapperEnum;
+import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+
+import java.io.File;
+import java.util.stream.Collectors;
 
 /**
  * @author Benjamin DANGLOT
@@ -33,15 +38,15 @@ public class DiffJJoulesMojo extends AbstractMojo {
     protected int iterations;
 
     /**
-     *  Specify the path to the root directory of the project before applying the commit.
-     *  This is useful when it is used on multi-modules project.
+     * Specify the path to the root directory of the project before applying the commit.
+     * This is useful when it is used on multi-modules project.
      */
     @Parameter(property = "path-repo-v1", defaultValue = "")
     private String pathToRepositoryV1;
 
     /**
-     *  Specify the path to the root directory of the project after applying the commit.
-     *  This is useful when it is used on multi-modules project.
+     * Specify the path to the root directory of the project after applying the commit.
+     * This is useful when it is used on multi-modules project.
      */
     @Parameter(property = "path-repo-v2", defaultValue = "")
     private String pathToRepositoryV2;
@@ -59,7 +64,7 @@ public class DiffJJoulesMojo extends AbstractMojo {
     private boolean shouldMark;
 
     /**
-     *  Specify the path to output the files that produces this plugin
+     * Specify the path to output the files that produces this plugin
      */
     @Parameter(property = "output-path", defaultValue = "diff-jjoules")
     protected String outputPath;
@@ -81,9 +86,13 @@ public class DiffJJoulesMojo extends AbstractMojo {
     @Parameter(property = "measure", defaultValue = "false")
     private boolean measureEnergyConsumption;
 
+    @Parameter(property = "timeout", defaultValue = "10000")
+    private int timeout;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         try {
+            EntryPoint.timeoutInMs = timeout;
             getLog().info("Running on:");
             getLog().info(this.project.getBasedir().getAbsolutePath());
             getLog().info(this.pathDirSecondVersion);
